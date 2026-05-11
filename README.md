@@ -61,6 +61,7 @@ Common flags:
 - `-o, --output <path>` - write the trajectory JSON file.
 - `--exit-immediately` - do not prompt for a follow-up task when the model submits.
 - `--system-prompt-placement <placement>` - `system` or `first_user`.
+- `--debug` - print structured provider errors, relevant headers, and stack traces.
 
 ### YAML Config Files
 
@@ -195,6 +196,17 @@ npm run dev -- \
   --model google/gemma-4-31b-it:free \
   --task "Print the current directory"
 ```
+
+If OpenRouter returns `429 Provider returned error`, rerun with `--debug`:
+
+```bash
+npm run dev -- \
+  --model google/gemma-4-31b-it:free \
+  --task "Print the current directory" \
+  --debug
+```
+
+The debug output prints structured fields such as status, request id, retry headers, and provider metadata when the OpenAI-compatible endpoint returns them.
 
 Generic OpenAI-compatible endpoint example:
 

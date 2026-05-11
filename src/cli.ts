@@ -6,6 +6,7 @@ import { InteractiveAgent } from "./agent/interactive.js";
 import { getEnvironment } from "./environment/local.js";
 import { getModel } from "./model/openai.js";
 import { recursiveMerge } from "./utils.js";
+import { formatCliError } from "./cli-error.js";
 
 const program = new Command();
 
@@ -21,6 +22,7 @@ program
   .option("-o, --output <path>", "Output trajectory file", DEFAULT_OUTPUT_PATH)
   .option("--exit-immediately", "Exit immediately when the agent wants to finish")
   .option("--system-prompt-placement <placement>", "system or first_user")
+  .option("--debug", "Print structured provider errors and stack traces")
   .action(async (options) => {
     const cliConfig = {
       run: {
@@ -62,7 +64,8 @@ program
   });
 
 program.parseAsync().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
+  const debug = Boolean(program.opts<{ debug?: boolean }>().debug);
+  console.error(formatCliError(error, debug));
   process.exitCode = 1;
 });
 

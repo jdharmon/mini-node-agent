@@ -130,5 +130,6 @@ If adding config keys, update both `src/config.ts` defaults and `config/mini.yam
 - Do not add LiteLLM. This port intentionally uses the official `openai` SDK.
 - OpenAI-compatible providers are supported by `src/model/openai.ts`, but provider URLs are never inferred. Use `OPENAI_BASE_URL` or explicit `model.baseURL` for non-OpenAI providers.
 - Never commit API keys into YAML config. Use `OPENAI_API_KEY` or explicit local-only `model.apiKey`.
+- CLI provider error formatting lives in `src/cli-error.ts`; preserve `--debug` support for structured upstream errors and rate-limit headers.
 - Dollar cost limits are intentionally not implemented. Token usage may be recorded when returned by OpenAI.
 - Keep public exported types in `src/index.ts` when adding reusable classes or helpers.
