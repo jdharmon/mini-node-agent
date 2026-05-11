@@ -1,10 +1,10 @@
 {
-  "name": "node-agent",
+  "name": "mini-node-agent",
   "version": "0.1.0",
   "description": "A minimal Node.js software engineering agent inspired by mini-swe-agent.",
   "type": "module",
   "bin": {
-    "node-agent": "./dist/cli.js"
+    "mini-node-agent": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

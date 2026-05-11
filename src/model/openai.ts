@@ -129,9 +129,9 @@ export class OpenAITextModel extends OpenAIToolModel {
 
 export function getModel(config: Record<string, unknown>): Model {
   const modelClass = String(config.modelClass ?? "openai");
-  const modelName = String(config.modelName ?? process.env.NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL ?? "");
+  const modelName = String(config.modelName ?? process.env.MINI_NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL ?? "");
   if (!modelName) {
-    throw new Error("No model configured. Pass --model or set NODE_AGENT_MODEL_NAME.");
+    throw new Error("No model configured. Pass --model or set MINI_NODE_AGENT_MODEL_NAME.");
   }
   const modelConfig = {
     modelName,

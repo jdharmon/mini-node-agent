@@ -14,7 +14,7 @@ describe("LocalEnvironment", () => {
   });
 
   it("persists filesystem edits across fresh shell processes", async () => {
-    const cwd = await mkdtemp(join(tmpdir(), "node-agent-"));
+    const cwd = await mkdtemp(join(tmpdir(), "mini-node-agent-"));
     try {
       const env = new LocalEnvironment({ cwd, shell: { executable: "bash", args: ["-lc"] } });
       await env.execute({ tool: "shell", input: "printf hi > file.txt", command: "printf hi > file.txt" });

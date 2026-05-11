@@ -1,4 +1,4 @@
-# node-agent
+# mini-node-agent
 
 A minimal TypeScript software engineering agent inspired by mini-swe-agent.
 
@@ -28,7 +28,7 @@ npm run dev -- --model google/gemma-4-31b-it:free --task "Print the current dire
 
 ## Configuration
 
-`node-agent` has built-in defaults, accepts YAML config files, and supports dotted key-value overrides from the CLI.
+`mini-node-agent` has built-in defaults, accepts YAML config files, and supports dotted key-value overrides from the CLI.
 
 Config is merged in this order:
 
@@ -47,7 +47,7 @@ node dist/cli.js \
   --model-class openai \
   --environment local \
   --yolo \
-  --output ~/.node-agent/last_run.traj.json
+  --output ~/.mini-node-agent/last_run.traj.json
 ```
 
 Common flags:
@@ -77,7 +77,7 @@ You can also pass a path:
 node dist/cli.js -c ./my-agent.yaml
 ```
 
-Config lookup checks the current directory, `NODE_AGENT_CONFIG_DIR` when set, and the package `config/` directory.
+Config lookup checks the current directory, `MINI_NODE_AGENT_CONFIG_DIR` when set, and the package `config/` directory.
 
 Example config:
 
@@ -90,7 +90,7 @@ agent:
   stepLimit: 20
   confirmExit: true
   systemPromptPlacement: system
-  outputPath: /tmp/node-agent-run.traj.json
+  outputPath: /tmp/mini-node-agent-run.traj.json
   systemTemplate: |
     You are a careful software engineering agent.
   instanceTemplate: |
@@ -153,7 +153,7 @@ agent:
   confirmExit: true
   whitelistActions: []
   systemPromptPlacement: system
-  outputPath: /tmp/node-agent-run.traj.json
+  outputPath: /tmp/mini-node-agent-run.traj.json
   systemTemplate: |
     You are a helpful assistant that can interact with a computer.
   instanceTemplate: |
@@ -182,7 +182,7 @@ model:
 
 - `modelClass: openai` uses OpenAI Chat Completions tool calling.
 - `modelClass: openai_text` uses plain assistant text and parses fenced tool blocks.
-- `modelName` can also come from `NODE_AGENT_MODEL_NAME` or `OPENAI_MODEL`.
+- `modelName` can also come from `MINI_NODE_AGENT_MODEL_NAME` or `OPENAI_MODEL`.
 - `apiKey` defaults to `OPENAI_API_KEY`.
 - `baseURL` can point at an OpenAI-compatible API. It defaults to `OPENAI_BASE_URL` when set.
 - `modelKwargs` is spread into `client.chat.completions.create(...)`.

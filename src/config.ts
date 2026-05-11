@@ -7,7 +7,7 @@ import { parseScalar, recursiveMerge, setDottedValue } from "./utils.js";
 
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
-export const DEFAULT_OUTPUT_PATH = join(homedir(), ".node-agent", "last_run.traj.json");
+export const DEFAULT_OUTPUT_PATH = join(homedir(), ".mini-node-agent", "last_run.traj.json");
 
 export const DEFAULT_CONFIG: Record<string, unknown> = {
   run: {
@@ -45,7 +45,7 @@ Submit your changes and finish by issuing this command by itself:
   },
   model: {
     modelClass: "openai",
-    modelName: process.env.NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL,
+    modelName: process.env.MINI_NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL,
     modelKwargs: {},
     observationTemplate:
       "<returncode>{{output.returncode}}</returncode>\n<output>\n{{output.output}}</output>",
@@ -105,7 +105,7 @@ export function getConfigPath(spec: string): string {
 
 function candidatePaths(spec: string): string[] {
   const withSuffix = spec.endsWith(".yaml") || spec.endsWith(".yml") ? spec : `${spec}.yaml`;
-  const envDir = process.env.NODE_AGENT_CONFIG_DIR;
+  const envDir = process.env.MINI_NODE_AGENT_CONFIG_DIR;
   const raw = isAbsolute(spec) ? [spec] : [resolve(process.cwd(), spec)];
   return [
     ...raw,

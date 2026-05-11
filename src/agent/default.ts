@@ -125,7 +125,7 @@ export class DefaultAgent {
           submission: lastExtra.submission ?? ""
         },
         messages: this.messages,
-        trajectoryFormat: "node-agent-0.1"
+        trajectoryFormat: "mini-node-agent-0.1"
       },
       this.model.serialize(),
       this.env.serialize(),

@@ -11,7 +11,7 @@ import { formatCliError } from "./cli-error.js";
 const program = new Command();
 
 program
-  .name("node-agent")
+  .name("mini-node-agent")
   .description("Run a minimal Node.js software engineering agent.")
   .option("-t, --task <task>", "Task/problem statement")
   .option("-m, --model <model>", "OpenAI model name")
