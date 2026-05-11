@@ -30,10 +30,10 @@ export class OpenAIToolModel implements Model {
       apiKey: config.apiKey,
       baseURL: config.baseURL
     };
-    this.client = new OpenAI({
-      apiKey: this.config.apiKey ?? process.env.OPENAI_API_KEY,
-      baseURL: this.config.baseURL
-    });
+    const connection = resolveOpenAIConnection(this.config);
+    this.config.apiKey = connection.apiKey;
+    this.config.baseURL = connection.baseURL;
+    this.client = new OpenAI(connection);
   }
 
   async query(messages: AgentMessage[]): Promise<AgentMessage> {
@@ -148,4 +148,21 @@ export function getModel(config: Record<string, unknown>): Model {
     return new OpenAIToolModel(modelConfig);
   }
   throw new Error(`Unknown model class: ${modelClass}`);
+}
+
+export function resolveOpenAIConnection(config: Pick<OpenAIModelConfig, "modelName" | "apiKey" | "baseURL">): {
+  apiKey: string;
+  baseURL?: string;
+} {
+  const apiKey = nonEmpty(config.apiKey) ?? nonEmpty(process.env.OPENAI_API_KEY);
+  const baseURL = nonEmpty(config.baseURL) ?? nonEmpty(process.env.OPENAI_BASE_URL);
+
+  if (!apiKey) {
+    throw new Error(`No API key configured for model '${config.modelName}'. Set OPENAI_API_KEY or model.apiKey.`);
+  }
+  return { apiKey, baseURL };
+}
+
+function nonEmpty(value: string | undefined): string | undefined {
+  return value && value.trim() ? value : undefined;
 }

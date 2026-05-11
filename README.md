@@ -18,6 +18,14 @@ For development:
 npm run dev -- --model gpt-4.1-mini --task "Print the current directory" --yolo
 ```
 
+OpenAI-compatible providers are supported through the same adapter. For OpenRouter-style model names such as `google/...`, set `OPENAI_API_KEY` to the provider key and explicitly set `OPENAI_BASE_URL` or `model.baseURL`:
+
+```bash
+export OPENAI_API_KEY=...
+export OPENAI_BASE_URL=https://openrouter.ai/api/v1
+npm run dev -- --model google/gemma-4-31b-it:free --task "Print the current directory"
+```
+
 ## Configuration
 
 `node-agent` has built-in defaults, accepts YAML config files, and supports dotted key-value overrides from the CLI.
@@ -175,8 +183,26 @@ model:
 - `modelClass: openai_text` uses plain assistant text and parses fenced tool blocks.
 - `modelName` can also come from `NODE_AGENT_MODEL_NAME` or `OPENAI_MODEL`.
 - `apiKey` defaults to `OPENAI_API_KEY`.
-- `baseURL` can point at an OpenAI-compatible API.
+- `baseURL` can point at an OpenAI-compatible API. It defaults to `OPENAI_BASE_URL` when set.
 - `modelKwargs` is spread into `client.chat.completions.create(...)`.
+
+OpenRouter example:
+
+```bash
+export OPENAI_API_KEY=...
+export OPENAI_BASE_URL=https://openrouter.ai/api/v1
+npm run dev -- \
+  --model google/gemma-4-31b-it:free \
+  --task "Print the current directory"
+```
+
+Generic OpenAI-compatible endpoint example:
+
+```bash
+export OPENAI_API_KEY=...
+export OPENAI_BASE_URL=https://api.example.test/v1
+npm run dev -- --model provider/model-name --task "Print pwd"
+```
 
 ### Text Adapter Format
 
