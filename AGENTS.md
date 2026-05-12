@@ -16,8 +16,8 @@ Important files:
 
 - `src/agent/default.ts` - main non-interactive agent loop.
 - `src/agent/interactive.ts` - confirm/yolo/human mode behavior.
-- `src/model/openai.ts` - official OpenAI SDK adapters.
-- `src/model/actions.ts` - tool schema, tool-call parsing, text-tool parsing, observation formatting.
+- `src/model/openai.ts` - official OpenAI SDK adapter.
+- `src/model/actions.ts` - text-tool parsing and observation formatting.
 - `src/environment/local.ts` - local shell execution.
 - `src/config.ts` and `config/mini.yaml` - default config and YAML/override loading.
 - `src/cli.ts` - CLI entrypoint.
@@ -46,20 +46,7 @@ node dist/cli.js --model <model> --task "<task>" --yolo
 
 ## Tool Calling
 
-The initial supported tool is named `shell`, not `bash`.
-
-OpenAI tool-calling adapter:
-
-```json
-{
-  "name": "shell",
-  "arguments": {
-    "command": "pwd"
-  }
-}
-```
-
-Text adapter blocks must include both the opening fence and the closing fence:
+All models use a single text-based tool protocol. Every tool call is a fenced block with `tool=<name>` on the opening fence and `\`\`\`tool` as the closing fence:
 
 ````text
 ```tool=shell
@@ -67,14 +54,14 @@ pwd
 ```tool
 ````
 
-To signal task completion, use a `tool=end` block with an empty body:
+To signal task completion, emit a `tool=end` block with an empty body:
 
 ````text
 ```tool=end
 ```tool
 ````
 
-Do not regress this grammar to the old `mswea_bash_command` format. The `tool=<tool name>` header exists so future tools can be added without changing the text block format.
+The currently supported tools are `shell` and `end`. Do not regress this grammar to the old `mswea_bash_command` format or to OpenAI-style structured tool calls. The `tool=<tool name>` header exists so future tools can be added without changing the block format.
 
 Parser behavior belongs in `src/model/actions.ts`; add tests in `tests/actions.test.ts` for any grammar change.
 
@@ -96,13 +83,7 @@ environment:
     args: ["-lc"]
 ```
 
-Completion is detected when command output starts with:
-
-```text
-COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```
-
-The command must exit with return code `0`.
+Completion is signaled by the model emitting a `tool=end` block; `src/agent/default.ts` intercepts that action and raises `Submitted`. `src/environment/local.ts` also still recognizes a legacy `COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT` first-line marker in shell output for backward compatibility, but new prompts should use `tool=end`.
 
 ## System Prompt Placement
 

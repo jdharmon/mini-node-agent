@@ -2,62 +2,6 @@ import type { Action, AgentMessage, ExecutionOutput } from "../types.js";
 import { FormatError } from "../errors.js";
 import { renderTemplate } from "../utils.js";
 
-export const SHELL_TOOL = {
-  type: "function",
-  function: {
-    name: "shell",
-    description: "Execute a shell command",
-    parameters: {
-      type: "object",
-      properties: {
-        command: {
-          type: "string",
-          description: "The shell command to execute"
-        }
-      },
-      required: ["command"]
-    }
-  }
-} as const;
-
-export function parseToolCallActions(toolCalls: unknown, formatErrorTemplate: string): Action[] {
-  if (!Array.isArray(toolCalls) || toolCalls.length === 0) {
-    throw formatError("No tool calls found in the response. Every response must include at least one tool call.", formatErrorTemplate);
-  }
-
-  return toolCalls.map((toolCall) => {
-    const call = toolCall as {
-      id?: string;
-      function?: { name?: string; arguments?: string };
-    };
-    let args: unknown;
-    let error = "";
-    try {
-      args = JSON.parse(call.function?.arguments ?? "");
-    } catch (e) {
-      error += `Error parsing tool call arguments: ${String(e)}. `;
-      args = {};
-    }
-    if (call.function?.name !== "shell") {
-      error += `Unknown tool '${call.function?.name ?? ""}'. `;
-    }
-    const command = isCommandArgs(args) ? args.command : undefined;
-    if (command === undefined) {
-      error += "Missing 'command' argument in shell tool call.";
-    }
-    if (error) {
-      throw formatError(error.trim(), formatErrorTemplate);
-    }
-    const finalCommand = command as string;
-    return {
-      tool: "shell",
-      input: finalCommand,
-      command: finalCommand,
-      toolCallId: call.id
-    };
-  });
-}
-
 export function parseTextToolActions(content: string, formatErrorTemplate: string): Action[] {
   const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n?```tool/g;
   const actions: Action[] = [];
@@ -96,11 +40,11 @@ export function formatObservationMessages(
     exception_info: "action was not executed"
   };
 
-  return actions.map((action, index) => {
+  return actions.map((_action, index) => {
     const output = outputs[index] ?? notExecuted;
     const content = renderTemplate(observationTemplate, { ...templateVars, output });
-    const message: AgentMessage = {
-      role: action.toolCallId ? "tool" : "user",
+    return {
+      role: "user",
       content,
       extra: {
         raw_output: output.output,
@@ -110,15 +54,7 @@ export function formatObservationMessages(
         ...(output.extra ?? {})
       }
     };
-    if (action.toolCallId) {
-      message.tool_call_id = action.toolCallId;
-    }
-    return message;
   });
-}
-
-function isCommandArgs(value: unknown): value is { command: string } {
-  return typeof value === "object" && value !== null && typeof (value as { command?: unknown }).command === "string";
 }
 
 function formatError(error: string, template: string): FormatError {

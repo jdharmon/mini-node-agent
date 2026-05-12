@@ -15,7 +15,6 @@ program
   .description("Run a minimal Node.js software engineering agent.")
   .option("-t, --task <task>", "Task/problem statement")
   .option("-m, --model <model>", "OpenAI model name")
-  .option("--model-class <class>", "Model class: openai or openai_text")
   .option("--environment <class>", "Environment class", "local")
   .option("-c, --config <spec>", "YAML config file or dotted key=value override", collect, [])
   .option("-y, --yolo", "Run without confirmation")
@@ -35,8 +34,7 @@ program
         systemPromptPlacement: options.systemPromptPlacement
       },
       model: {
-        modelName: options.model,
-        modelClass: options.modelClass
+        modelName: options.model
       },
       environment: {
         environmentClass: options.environment

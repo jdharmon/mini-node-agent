@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import type { AgentMessage, ExecutionOutput, Model } from "../types.js";
-import { formatObservationMessages, parseTextToolActions, parseToolCallActions, SHELL_TOOL } from "./actions.js";
+import { formatObservationMessages, parseTextToolActions } from "./actions.js";
 
 export interface OpenAIModelConfig {
   modelName: string;
@@ -15,9 +15,9 @@ export interface OpenAIModelConfig {
 const DEFAULT_OBSERVATION_TEMPLATE =
   "<returncode>{{output.returncode}}</returncode>\n<output>\n{{output.output}}</output>";
 
-const DEFAULT_FORMAT_ERROR_TEMPLATE = "Tool call error:\n\n{{error}}\n\nUse the shell tool with a command.";
+const DEFAULT_FORMAT_ERROR_TEMPLATE = "Tool call error:\n\n{{error}}\n\nUse a fenced tool block.";
 
-export class OpenAIToolModel implements Model {
+export class OpenAIModel implements Model {
   protected readonly client: OpenAI;
   protected readonly config: Required<Omit<OpenAIModelConfig, "apiKey" | "baseURL">> & Pick<OpenAIModelConfig, "apiKey" | "baseURL">;
 
@@ -40,22 +40,21 @@ export class OpenAIToolModel implements Model {
     const response = await this.client.chat.completions.create({
       model: this.config.modelName,
       messages: this.prepareMessages(messages),
-      tools: [SHELL_TOOL],
       ...(this.config.modelKwargs as object)
     });
     const rawMessage = response.choices[0]?.message;
-    const message: AgentMessage = {
+    const content = rawMessage?.content ?? "";
+    return {
       ...(rawMessage as unknown as Record<string, unknown>),
       role: "assistant",
-      content: rawMessage?.content ?? null,
+      content,
       extra: {
-        actions: parseToolCallActions(rawMessage?.tool_calls ?? [], this.config.formatErrorTemplate),
+        actions: parseTextToolActions(content, this.config.formatErrorTemplate),
         response,
         usage: response.usage,
         timestamp: Date.now() / 1000
       }
     };
-    return message;
   }
 
   formatMessage(message: AgentMessage): AgentMessage {
@@ -104,50 +103,23 @@ export class OpenAIToolModel implements Model {
   }
 }
 
-export class OpenAITextModel extends OpenAIToolModel {
-  async query(messages: AgentMessage[]): Promise<AgentMessage> {
-    const response = await this.client.chat.completions.create({
-      model: this.config.modelName,
-      messages: this.prepareMessages(messages),
-      ...(this.config.modelKwargs as object)
-    });
-    const rawMessage = response.choices[0]?.message;
-    const content = rawMessage?.content ?? "";
-    return {
-      ...(rawMessage as unknown as Record<string, unknown>),
-      role: "assistant",
-      content,
-      extra: {
-        actions: parseTextToolActions(content, this.config.formatErrorTemplate),
-        response,
-        usage: response.usage,
-        timestamp: Date.now() / 1000
-      }
-    };
-  }
-}
-
 export function getModel(config: Record<string, unknown>): Model {
   const modelClass = String(config.modelClass ?? "openai");
   const modelName = String(config.modelName ?? process.env.MINI_NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL ?? "");
   if (!modelName) {
     throw new Error("No model configured. Pass --model or set MINI_NODE_AGENT_MODEL_NAME.");
   }
-  const modelConfig = {
+  if (modelClass !== "openai") {
+    throw new Error(`Unknown model class: ${modelClass}`);
+  }
+  return new OpenAIModel({
     modelName,
     modelKwargs: (config.modelKwargs as Record<string, unknown> | undefined) ?? {},
     observationTemplate: String(config.observationTemplate ?? DEFAULT_OBSERVATION_TEMPLATE),
     formatErrorTemplate: String(config.formatErrorTemplate ?? DEFAULT_FORMAT_ERROR_TEMPLATE),
     apiKey: config.apiKey as string | undefined,
     baseURL: config.baseURL as string | undefined
-  };
-  if (modelClass === "openai_text") {
-    return new OpenAITextModel(modelConfig);
-  }
-  if (modelClass === "openai") {
-    return new OpenAIToolModel(modelConfig);
-  }
-  throw new Error(`Unknown model class: ${modelClass}`);
+  });
 }
 
 export function resolveOpenAIConnection(config: Pick<OpenAIModelConfig, "modelName" | "apiKey" | "baseURL">): {

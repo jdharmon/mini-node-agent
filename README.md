@@ -44,7 +44,6 @@ Later values override earlier values.
 node dist/cli.js \
   --model gpt-4.1-mini \
   --task "Fix the failing test" \
-  --model-class openai \
   --environment local \
   --yolo \
   --output ~/.mini-node-agent/last_run.traj.json
@@ -54,7 +53,6 @@ Common flags:
 
 - `-t, --task <task>` - task/problem statement. If omitted, the CLI prompts.
 - `-m, --model <model>` - OpenAI model name.
-- `--model-class <class>` - `openai` or `openai_text`.
 - `--environment <class>` - currently `local`.
 - `-c, --config <spec>` - YAML config file or dotted key-value override. Can be repeated.
 - `-y, --yolo` - execute model commands without confirmation.
@@ -180,8 +178,7 @@ model:
   baseURL: null
 ```
 
-- `modelClass: openai` uses OpenAI Chat Completions tool calling.
-- `modelClass: openai_text` uses plain assistant text and parses fenced tool blocks.
+- `modelClass: openai` is currently the only supported class. It uses Chat Completions and parses fenced tool blocks from the assistant content.
 - `modelName` can also come from `MINI_NODE_AGENT_MODEL_NAME` or `OPENAI_MODEL`.
 - `apiKey` defaults to `OPENAI_API_KEY`.
 - `baseURL` can point at an OpenAI-compatible API. It defaults to `OPENAI_BASE_URL` when set.
@@ -216,9 +213,9 @@ export OPENAI_BASE_URL=https://api.example.test/v1
 npm run dev -- --model provider/model-name --task "Print pwd"
 ```
 
-### Text Adapter Format
+### Tool Block Format
 
-When using `openai_text`, every tool call must be a fenced block with a closing fence:
+Every tool call must be a fenced block with a closing fence:
 
 ````text
 ```tool=shell
@@ -226,7 +223,7 @@ pwd
 ```tool
 ````
 
-The `tool=<tool name>` header is intentional so future tools can be added without changing the text grammar. Supported tools: `shell` (execute a command) and `end` (signal task completion with an empty body).
+The `tool=<tool name>` header is intentional so future tools can be added without changing the grammar. Supported tools: `shell` (execute a command) and `end` (signal task completion with an empty body).
 
 ### Environment Options
 
@@ -268,24 +265,7 @@ Each action runs in a fresh process. `cd` and environment variable changes do no
 
 ## Models
 
-The default model adapter uses the official OpenAI SDK with Chat Completions tool calling. It exposes one initial tool:
-
-```json
-{
-  "name": "shell",
-  "arguments": {
-    "command": "pwd"
-  }
-}
-```
-
-The text adapter can be selected with:
-
-```bash
-node dist/cli.js --model-class openai_text --model gpt-4.1-mini --task "Print pwd"
-```
-
-Text tool calls must use a fenced block with the closing fence:
+The model adapter uses the official OpenAI SDK Chat Completions API and parses fenced tool blocks from the assistant's content. Tool calls use a fenced block with the closing fence:
 
 ````text
 ```tool=shell

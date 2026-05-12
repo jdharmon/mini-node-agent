@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { FormatError } from "../src/errors.js";
-import { parseTextToolActions, parseToolCallActions, SHELL_TOOL } from "../src/model/actions.js";
+import { parseTextToolActions } from "../src/model/actions.js";
 
 const FORMAT = "{{error}}";
 
 describe("tool actions", () => {
-  it("defines a shell tool", () => {
-    expect(SHELL_TOOL.function.name).toBe("shell");
-    expect(SHELL_TOOL.function.parameters.required).toEqual(["command"]);
-  });
-
   it("parses text shell blocks with closing fences", () => {
     const actions = parseTextToolActions("Thinking\n```tool=shell\npwd\n```tool", FORMAT);
     expect(actions).toEqual([{ tool: "shell", input: "pwd", command: "pwd" }]);
@@ -39,18 +34,5 @@ describe("tool actions", () => {
       { tool: "shell", input: "pwd", command: "pwd" },
       { tool: "end", input: "" }
     ]);
-  });
-
-  it("parses OpenAI-style tool calls", () => {
-    const actions = parseToolCallActions(
-      [
-        {
-          id: "call_1",
-          function: { name: "shell", arguments: JSON.stringify({ command: "pwd" }) }
-        }
-      ],
-      FORMAT
-    );
-    expect(actions).toEqual([{ tool: "shell", input: "pwd", command: "pwd", toolCallId: "call_1" }]);
   });
 });

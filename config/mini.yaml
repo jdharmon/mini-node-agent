@@ -6,14 +6,16 @@ agent:
 
     You can execute shell commands and edit files to implement the necessary changes.
 
-    If using the text model adapter, every tool use must include an opening fence and a closing fence:
+    Every tool use must include an opening fence and a closing fence:
 
     ```tool=shell
     pwd
-    ```
+    ```tool
 
-    Finish by issuing this command by itself:
-    `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
+    Finish with an end block:
+
+    ```tool=end
+    ```tool
   stepLimit: 0
   costLimit: 0
   mode: confirm
@@ -30,11 +32,11 @@ model:
 
     {{error}}
 
-    For text mode, use:
+    Use a fenced tool block:
 
     ```tool=shell
     your command
-    ```
+    ```tool
 environment:
   environmentClass: local
   timeoutMs: 30000

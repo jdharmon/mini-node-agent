@@ -27,7 +27,7 @@ You are operating in an environment where:
 3. You see the result.
 4. You write your next command.
 
-If using the text model adapter, every tool use must be a fenced block with a closing fence:
+Every tool use must be a fenced block with a closing fence:
 
 \`\`\`tool=shell
 pwd
@@ -55,11 +55,8 @@ Submit your changes and finish with an end block:
 
 {{error}}
 
-Use one of these formats:
+Use a fenced tool block:
 
-OpenAI tool calling: call the shell tool with {"command":"your command"}.
-
-Text adapter:
 \`\`\`tool=shell
 your command
 \`\`\`tool`

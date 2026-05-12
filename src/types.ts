@@ -17,7 +17,6 @@ export interface Action {
   tool: string;
   input: string;
   command?: string;
-  toolCallId?: string;
 }
 
 export interface ExecutionOutput {
