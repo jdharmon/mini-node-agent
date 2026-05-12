@@ -59,20 +59,20 @@ export function parseToolCallActions(toolCalls: unknown, formatErrorTemplate: st
 }
 
 export function parseTextToolActions(content: string, formatErrorTemplate: string): Action[] {
-  const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n```tool/g;
+  const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n?```tool/g;
   const actions: Action[] = [];
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(content)) !== null) {
     const tool = match[1];
     const input = match[2];
-    if (tool !== "shell") {
+    if (tool !== "shell" && tool !== "end") {
       throw formatError(`Unknown tool '${tool}'.`, formatErrorTemplate);
     }
-    if (!input.trim()) {
+    if (tool === "shell" && !input.trim()) {
       throw formatError("Missing command input for shell tool block.", formatErrorTemplate);
     }
-    actions.push({ tool, input, command: input });
+    actions.push(tool === "shell" ? { tool, input, command: input } : { tool, input });
   }
 
   if (actions.length === 0) {

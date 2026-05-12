@@ -28,6 +28,19 @@ describe("tool actions", () => {
     expect(() => parseTextToolActions("```tool=edit\nx\n```tool", FORMAT)).toThrow("InterruptAgentFlow");
   });
 
+  it("parses a tool=end block with empty body", () => {
+    const actions = parseTextToolActions("```tool=end\n```tool", FORMAT);
+    expect(actions).toEqual([{ tool: "end", input: "" }]);
+  });
+
+  it("parses tool=end after tool=shell in the same response", () => {
+    const actions = parseTextToolActions("```tool=shell\npwd\n```tool\n```tool=end\n```tool", FORMAT);
+    expect(actions).toEqual([
+      { tool: "shell", input: "pwd", command: "pwd" },
+      { tool: "end", input: "" }
+    ]);
+  });
+
   it("parses OpenAI-style tool calls", () => {
     const actions = parseToolCallActions(
       [

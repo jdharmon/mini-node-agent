@@ -67,6 +67,13 @@ pwd
 ```tool
 ````
 
+To signal task completion, use a `tool=end` block with an empty body:
+
+````text
+```tool=end
+```tool
+````
+
 Do not regress this grammar to the old `mswea_bash_command` format. The `tool=<tool name>` header exists so future tools can be added without changing the text block format.
 
 Parser behavior belongs in `src/model/actions.ts`; add tests in `tests/actions.test.ts` for any grammar change.

@@ -81,6 +81,9 @@ export class DefaultAgent {
     const outputs: ExecutionOutput[] = [];
     try {
       for (const action of actions) {
+        if (action.tool === "end") {
+          throw new Submitted({ role: "exit", content: "", extra: { exit_status: "Submitted", submission: "" } });
+        }
         outputs.push(await this.env.execute(action));
       }
     } catch (e) {

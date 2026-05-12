@@ -226,7 +226,7 @@ pwd
 ```tool
 ````
 
-The `tool=<tool name>` header is intentional so future tools can be added without changing the text grammar. The only supported tool today is `shell`.
+The `tool=<tool name>` header is intentional so future tools can be added without changing the text grammar. Supported tools: `shell` (execute a command) and `end` (signal task completion with an empty body).
 
 ### Environment Options
 
@@ -290,6 +290,13 @@ Text tool calls must use a fenced block with the closing fence:
 ````text
 ```tool=shell
 pwd
+```tool
+````
+
+Signal task completion with an empty `tool=end` block:
+
+````text
+```tool=end
 ```tool
 ````
 
