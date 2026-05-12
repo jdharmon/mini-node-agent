@@ -3,8 +3,8 @@ import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Submitted } from "../src/errors.js";
-import { LocalEnvironment } from "../src/environment/local.js";
+import { Submitted } from "../../src/errors.js";
+import { LocalEnvironment } from "../../src/environment/local.js";
 
 describe("LocalEnvironment", () => {
   it("executes shell commands", async () => {

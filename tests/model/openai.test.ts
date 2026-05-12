@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { resolveOpenAIConnection } from "../src/model/openai.js";
+import { resolveOpenAIConnection } from "../../src/model/openai.js";
 
 const ORIGINAL_ENV = { ...process.env };
 

@@ -7,6 +7,7 @@ import { getEnvironment } from "./environment/local.js";
 import { getModel } from "./model/openai.js";
 import { recursiveMerge } from "./utils.js";
 import { formatCliError } from "./cli-error.js";
+import { readFileSync } from "node:fs";
 
 const program = new Command();
 
@@ -14,6 +15,7 @@ program
   .name("mini-node-agent")
   .description("Run a minimal Node.js software engineering agent.")
   .option("-t, --task <task>", "Task/problem statement")
+  .option("-f, --task-file <path>", "File containing the task/problem statement")
   .option("-m, --model <model>", "OpenAI model name")
   .option("--environment <class>", "Environment class", "local")
   .option("-c, --config <spec>", "YAML config file or dotted key=value override", collect, [])
@@ -48,6 +50,9 @@ program
     const environmentConfig = config.environment as Record<string, unknown>;
 
     let task = run.task as string | undefined;
+    if (!task && options.taskFile) {
+      task = readFileSync(options.taskFile, "utf8");
+    }
     if (!task) {
       task = await input({ message: "What do you want to do?" });
     }

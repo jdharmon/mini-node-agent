@@ -17,7 +17,9 @@ export const DEFAULT_CONFIG: Record<string, unknown> = {
     systemTemplate: "You are a helpful assistant that can interact with a computer.",
     instanceTemplate: `Please solve this issue: {{task}}
 
-You can execute shell commands and edit files to implement the necessary changes.
+You can use tools to read files, execute shell commands, and edit files to implement the necessary changes.
+
+Read AGENTS.md in the current working directory before performing any work.
 
 ## Command Execution Rules
 

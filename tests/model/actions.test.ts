@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FormatError } from "../src/errors.js";
-import { parseTextToolActions } from "../src/model/actions.js";
+import { FormatError } from "../../src/errors.js";
+import { parseTextToolActions } from "../../src/model/actions.js";
 
 const FORMAT = "{{error}}";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DefaultAgent } from "../src/agent/default.js";
-import type { AgentMessage, Environment, ExecutionOutput, Model } from "../src/types.js";
+import { DefaultAgent } from "../../src/agent/default.js";
+import type { AgentMessage, Environment, ExecutionOutput, Model } from "../../src/types.js";
 
 class FakeModel implements Model {
   calls = 0;
