@@ -9,6 +9,7 @@ describe("OpenAI-compatible connection resolution", () => {
   });
 
   it("uses OPENAI_API_KEY for OpenAI models", () => {
+    delete process.env.OPENAI_BASE_URL;
     process.env.OPENAI_API_KEY = "openai-key";
 
     expect(resolveOpenAIConnection({ modelName: "gpt-4.1-mini" })).toEqual({
@@ -18,6 +19,7 @@ describe("OpenAI-compatible connection resolution", () => {
   });
 
   it("does not infer a base URL for slash-style model names", () => {
+    delete process.env.OPENAI_BASE_URL;
     process.env.OPENAI_API_KEY = "openai-compatible-key";
 
     expect(resolveOpenAIConnection({ modelName: "google/gemma-4-31b-it:free" })).toEqual({

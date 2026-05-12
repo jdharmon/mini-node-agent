@@ -26,6 +26,11 @@ You are operating in an environment where:
 2. The system executes each tool in turn and you see the result.
 3. You write your next tool block.
 
+You may include reasoning or prose before, between, or after tool blocks. Every response must contain at least one tool block. If you only need to communicate with the user without executing a command, you must include an end block:
+
+\`\`\`tool=end
+\`\`\`tool
+
 Every tool use is a fenced block with a closing \`\`\`tool fence.
 
 Run a shell command:

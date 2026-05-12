@@ -19,7 +19,25 @@ export class InteractiveAgent extends DefaultAgent {
       this.addMessages(message);
       return message;
     }
-    return super.query();
+    const message = await super.query();
+    
+    // Format the message content for console display
+    if (message.content) {
+      const displayContent = message.content.replace(/```tool=([^\r\n]+)\r?\n([\s\S]*?)```tool/g, (match, toolHeader, body) => {
+        const header = toolHeader.trim();
+        if (header === "end") {
+          return ""
+        } else if (header === "shell") {
+          return `TOOL: ${body.trim()}`;
+        } else {
+          return `TOOL: ${header}`;
+        }
+      });
+      
+      console.log(`\n${displayContent}\n`);
+    }
+    
+    return message;
   }
 
   override async executeActions(message: AgentMessage): Promise<AgentMessage[]> {
