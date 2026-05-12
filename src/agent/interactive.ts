@@ -28,6 +28,9 @@ export class InteractiveAgent extends DefaultAgent {
     const outputs: ExecutionOutput[] = [];
     try {
       for (const action of actions) {
+        if (action.tool === "end") {
+          throw new Submitted({ role: "exit", content: "", extra: { exit_status: "Submitted", submission: "" } });
+        }
         outputs.push(await this.env.execute(action));
       }
     } catch (e) {
@@ -48,10 +51,12 @@ export class InteractiveAgent extends DefaultAgent {
     return this.addMessages(...this.model.formatObservationMessages(message, outputs, this.getTemplateVars()));
   }
 
-  private async confirmActions(actions: Array<{ command?: string; input: string }>): Promise<void> {
+  private async confirmActions(actions: Array<{ tool: string; command?: string; input: string }>): Promise<void> {
     if (this.config.mode !== "confirm") return;
     const whitelist = this.config.whitelistActions ?? [];
-    const commands = actions.map((action) => action.command ?? action.input);
+    const commands = actions
+      .filter((action) => action.tool !== "end")
+      .map((action) => action.command ?? action.input);
     if (commands.every((command) => whitelist.some((pattern) => new RegExp(pattern).test(command)))) {
       return;
     }
