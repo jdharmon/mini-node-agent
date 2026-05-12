@@ -3,20 +3,31 @@ import { FormatError } from "../errors.js";
 import { renderTemplate } from "../utils.js";
 
 export function parseTextToolActions(content: string, formatErrorTemplate: string): Action[] {
-  const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n?```tool/g;
+  const regex = /```tool=([A-Za-z0-9_-]+)(?:\("([^"\r\n]*)"\))?[^\S\r\n]*\r?\n([\s\S]*?)\r?\n?```tool/g;
   const actions: Action[] = [];
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(content)) !== null) {
     const tool = match[1];
-    const input = match[2];
-    if (tool !== "shell" && tool !== "end") {
+    const path = match[2];
+    const input = match[3];
+
+    if (tool === "shell") {
+      if (path !== undefined) throw formatError("Tool 'shell' does not take an argument.", formatErrorTemplate);
+      if (!input.trim()) throw formatError("Missing command input for shell tool block.", formatErrorTemplate);
+      actions.push({ tool, input, command: input });
+    } else if (tool === "end") {
+      if (path !== undefined) throw formatError("Tool 'end' does not take an argument.", formatErrorTemplate);
+      actions.push({ tool, input });
+    } else if (tool === "read") {
+      if (!path) throw formatError("Tool 'read' requires a quoted file path argument.", formatErrorTemplate);
+      actions.push({ tool, input: "", path });
+    } else if (tool === "write") {
+      if (!path) throw formatError("Tool 'write' requires a quoted file path argument.", formatErrorTemplate);
+      actions.push({ tool, input, path });
+    } else {
       throw formatError(`Unknown tool '${tool}'.`, formatErrorTemplate);
     }
-    if (tool === "shell" && !input.trim()) {
-      throw formatError("Missing command input for shell tool block.", formatErrorTemplate);
-    }
-    actions.push(tool === "shell" ? { tool, input, command: input } : { tool, input });
   }
 
   if (actions.length === 0) {

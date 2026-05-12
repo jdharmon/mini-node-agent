@@ -223,7 +223,27 @@ pwd
 ```tool
 ````
 
-The `tool=<tool name>` header is intentional so future tools can be added without changing the grammar. Supported tools: `shell` (execute a command) and `end` (signal task completion with an empty body).
+Some tools take a single quoted argument on the opening fence:
+
+````text
+```tool=read("path/to/file")
+```tool
+````
+
+````text
+```tool=write("path/to/file")
+new file contents
+```tool
+````
+
+Supported tools:
+
+- `shell` — run a shell command (body is the command).
+- `read` — read a file (body ignored; observation contains the file contents).
+- `write` — write a file (body becomes the file contents; observation is empty).
+- `end` — signal task completion (body ignored).
+
+`read` and `write` paths must resolve inside the current working directory; out-of-cwd paths are rejected by the environment. Quotes and newlines are not allowed inside the path argument.
 
 ### Environment Options
 
@@ -265,20 +285,7 @@ Each action runs in a fresh process. `cd` and environment variable changes do no
 
 ## Models
 
-The model adapter uses the official OpenAI SDK Chat Completions API and parses fenced tool blocks from the assistant's content. Tool calls use a fenced block with the closing fence:
-
-````text
-```tool=shell
-pwd
-```tool
-````
-
-Signal task completion with an empty `tool=end` block:
-
-````text
-```tool=end
-```tool
-````
+The model adapter uses the official OpenAI SDK Chat Completions API and parses fenced tool blocks from the assistant's content. See "Tool Block Format" above for the full grammar; the supported tools are `shell`, `read`, `write`, and `end`.
 
 ## Shells
 

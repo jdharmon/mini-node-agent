@@ -22,16 +22,30 @@ You can execute shell commands and edit files to implement the necessary changes
 ## Command Execution Rules
 
 You are operating in an environment where:
-1. You issue at least one shell command.
-2. The system executes the command in a fresh shell process.
-3. You see the result.
-4. You write your next command.
+1. You issue at least one tool block.
+2. The system executes each tool in turn and you see the result.
+3. You write your next tool block.
 
-Every tool use must be a fenced block with a closing fence:
+Every tool use is a fenced block with a closing \`\`\`tool fence.
+
+Run a shell command:
 
 \`\`\`tool=shell
 pwd
 \`\`\`tool
+
+Read a file (body ignored):
+
+\`\`\`tool=read("path/to/file")
+\`\`\`tool
+
+Write a file (body becomes the file contents):
+
+\`\`\`tool=write("path/to/file")
+<file contents>
+\`\`\`tool
+
+File paths must be inside the current working directory. Quotes and newlines are not allowed inside the path argument.
 
 Submit your changes and finish with an end block:
 

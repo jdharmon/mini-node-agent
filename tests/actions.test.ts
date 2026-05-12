@@ -35,4 +35,39 @@ describe("tool actions", () => {
       { tool: "end", input: "" }
     ]);
   });
+
+  it("parses tool=read with a quoted path and ignores the body", () => {
+    const actions = parseTextToolActions("```tool=read(\"foo.ts\")\n```tool", FORMAT);
+    expect(actions).toEqual([{ tool: "read", input: "", path: "foo.ts" }]);
+  });
+
+  it("parses tool=write with a quoted path and a multi-line body", () => {
+    const actions = parseTextToolActions("```tool=write(\"dir/out.txt\")\nline one\nline two\n```tool", FORMAT);
+    expect(actions).toEqual([{ tool: "write", input: "line one\nline two", path: "dir/out.txt" }]);
+  });
+
+  it("rejects tool=read without a path argument", () => {
+    expect(() => parseTextToolActions("```tool=read\n```tool", FORMAT)).toThrow(FormatError);
+    expect(formatErrorContent("```tool=read\n```tool")).toMatch(/requires a quoted file path/);
+  });
+
+  it("rejects tool=write without a path argument", () => {
+    expect(() => parseTextToolActions("```tool=write\nx\n```tool", FORMAT)).toThrow(FormatError);
+    expect(formatErrorContent("```tool=write\nx\n```tool")).toMatch(/requires a quoted file path/);
+  });
+
+  it("rejects tool=shell with an argument", () => {
+    expect(() => parseTextToolActions("```tool=shell(\"x\")\npwd\n```tool", FORMAT)).toThrow(FormatError);
+    expect(formatErrorContent("```tool=shell(\"x\")\npwd\n```tool")).toMatch(/does not take an argument/);
+  });
 });
+
+function formatErrorContent(content: string): string {
+  try {
+    parseTextToolActions(content, FORMAT);
+    throw new Error("expected parseTextToolActions to throw");
+  } catch (e) {
+    if (e instanceof FormatError) return String(e.messages[0]?.content ?? "");
+    throw e;
+  }
+}

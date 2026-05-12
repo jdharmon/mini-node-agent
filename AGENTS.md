@@ -46,7 +46,7 @@ node dist/cli.js --model <model> --task "<task>" --yolo
 
 ## Tool Calling
 
-All models use a single text-based tool protocol. Every tool call is a fenced block with `tool=<name>` on the opening fence and `\`\`\`tool` as the closing fence:
+All models use a single text-based tool protocol. Every tool call is a fenced block with `tool=<name>` on the opening fence and `\`\`\`tool` as the closing fence. Some tools take a single quoted argument on the opening fence:
 
 ````text
 ```tool=shell
@@ -54,14 +54,32 @@ pwd
 ```tool
 ````
 
-To signal task completion, emit a `tool=end` block with an empty body:
+````text
+```tool=read("src/index.ts")
+```tool
+````
+
+````text
+```tool=write("notes.txt")
+hello
+```tool
+````
 
 ````text
 ```tool=end
 ```tool
 ````
 
-The currently supported tools are `shell` and `end`. Do not regress this grammar to the old `mswea_bash_command` format or to OpenAI-style structured tool calls. The `tool=<tool name>` header exists so future tools can be added without changing the block format.
+Supported tools:
+
+- `shell` — body is the shell command.
+- `read` — argument is the file path; body ignored; observation carries the file contents.
+- `write` — argument is the file path; body becomes the file contents; observation is empty.
+- `end` — signals task submission; body ignored.
+
+`read` and `write` paths are confined to the agent's working directory by `LocalEnvironment.resolveInsideCwd` (`src/environment/local.ts`) — lexical resolution via `path.resolve` plus a `cwd` prefix check. This is a hard limit; do not bypass it. Quotes and newlines are disallowed inside the path argument so the parser regex stays simple.
+
+Do not regress this grammar to the old `mswea_bash_command` format or to OpenAI-style structured tool calls. The `tool=<tool name>` header exists so future tools can be added without changing the block format.
 
 Parser behavior belongs in `src/model/actions.ts`; add tests in `tests/actions.test.ts` for any grammar change.
 

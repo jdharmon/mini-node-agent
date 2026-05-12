@@ -17,6 +17,7 @@ export interface Action {
   tool: string;
   input: string;
   command?: string;
+  path?: string;
 }
 
 export interface ExecutionOutput {

@@ -6,11 +6,26 @@ agent:
 
     You can execute shell commands and edit files to implement the necessary changes.
 
-    Every tool use must include an opening fence and a closing fence:
+    Every tool use is a fenced block with a closing ```tool fence.
+
+    Run a shell command:
 
     ```tool=shell
     pwd
     ```tool
+
+    Read a file (body ignored):
+
+    ```tool=read("path/to/file")
+    ```tool
+
+    Write a file (body becomes the file contents):
+
+    ```tool=write("path/to/file")
+    <file contents>
+    ```tool
+
+    File paths must be inside the current working directory. Quotes and newlines are not allowed inside the path argument.
 
     Finish with an end block:
 

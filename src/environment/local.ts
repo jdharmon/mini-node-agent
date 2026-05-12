@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve, sep } from "node:path";
 import type { Action, Environment, ExecutionOutput } from "../types.js";
 import { Submitted } from "../errors.js";
 
@@ -26,6 +26,9 @@ export class LocalEnvironment implements Environment {
   }
 
   async execute(action: Action, options: { cwd?: string; timeoutMs?: number } = {}): Promise<ExecutionOutput> {
+    const cwd = options.cwd ?? this.config.cwd;
+    if (action.tool === "read") return this.executeRead(action.path, cwd);
+    if (action.tool === "write") return this.executeWrite(action.path, action.input, cwd);
     if (action.tool !== "shell") {
       return {
         output: "",
@@ -35,11 +38,42 @@ export class LocalEnvironment implements Environment {
     }
     const shell = this.resolveShell();
     const output = await this.runProcess(shell.executable, [...shell.args, action.command ?? action.input], {
-      cwd: options.cwd ?? this.config.cwd,
+      cwd,
       timeoutMs: options.timeoutMs ?? this.config.timeoutMs
     });
     this.checkFinished(output);
     return output;
+  }
+
+  private executeRead(path: string | undefined, cwd: string): ExecutionOutput {
+    const r = this.resolveInsideCwd(path, cwd);
+    if (!r.ok) return { output: "", returncode: -1, exception_info: r.error };
+    try {
+      return { output: readFileSync(r.absolute, "utf8"), returncode: 0, exception_info: "" };
+    } catch (e) {
+      return { output: "", returncode: -1, exception_info: (e as Error).message };
+    }
+  }
+
+  private executeWrite(path: string | undefined, contents: string, cwd: string): ExecutionOutput {
+    const r = this.resolveInsideCwd(path, cwd);
+    if (!r.ok) return { output: "", returncode: -1, exception_info: r.error };
+    try {
+      writeFileSync(r.absolute, contents, "utf8");
+      return { output: "", returncode: 0, exception_info: "" };
+    } catch (e) {
+      return { output: "", returncode: -1, exception_info: (e as Error).message };
+    }
+  }
+
+  private resolveInsideCwd(path: string | undefined, cwd: string): { ok: true; absolute: string } | { ok: false; error: string } {
+    if (!path) return { ok: false, error: "Missing file path argument." };
+    const root = resolve(cwd);
+    const absolute = resolve(root, path);
+    if (absolute !== root && !absolute.startsWith(root + sep)) {
+      return { ok: false, error: `Path '${path}' is outside the working directory.` };
+    }
+    return { ok: true, absolute };
   }
 
   getTemplateVars(): Record<string, unknown> {
