@@ -40,7 +40,7 @@ export class InteractiveAgent extends DefaultAgent {
         }
       });
       
-      console.log(marked(displayContent));
+      console.log(marked(displayContent.trim()));
     }
     
     return message;
