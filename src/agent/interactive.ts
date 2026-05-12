@@ -2,6 +2,12 @@ import { input } from "@inquirer/prompts";
 import type { AgentConfig, AgentMessage, Environment, ExecutionOutput, Model } from "../types.js";
 import { InterruptAgentFlow, Submitted } from "../errors.js";
 import { DefaultAgent } from "./default.js";
+import { marked } from 'marked';
+import TerminalRenderer from 'marked-terminal';
+
+marked.setOptions({
+  renderer: new TerminalRenderer() as any
+});
 
 export class InteractiveAgent extends DefaultAgent {
   constructor(model: Model, env: Environment, config: Partial<AgentConfig> = {}) {
@@ -28,13 +34,13 @@ export class InteractiveAgent extends DefaultAgent {
         if (header === "end") {
           return ""
         } else if (header === "shell") {
-          return `TOOL: ${body.trim()}`;
+          return `**TOOL:** ${body.trim()}`;
         } else {
-          return `TOOL: ${header}`;
+          return `**TOOL:** ${header}`;
         }
       });
       
-      console.log(`\n${displayContent}\n`);
+      console.log(`\n${marked(displayContent)}\n`);
     }
     
     return message;
