@@ -97,8 +97,13 @@ your command
   }
 };
 
+export const USER_CONFIG_PATH = join(homedir(), ".mini-node-agent", "mini.yaml");
+
 export function loadConfig(configSpecs: string[] = []): Record<string, unknown> {
   const configs = [DEFAULT_CONFIG];
+  if (existsSync(USER_CONFIG_PATH)) {
+    configs.push((YAML.parse(readFileSync(USER_CONFIG_PATH, "utf8")) ?? {}) as Record<string, unknown>);
+  }
   for (const spec of configSpecs) {
     configs.push(getConfigFromSpec(spec));
   }
