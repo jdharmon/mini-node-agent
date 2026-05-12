@@ -59,7 +59,7 @@ export function parseToolCallActions(toolCalls: unknown, formatErrorTemplate: st
 }
 
 export function parseTextToolActions(content: string, formatErrorTemplate: string): Action[] {
-  const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n```/g;
+  const regex = /```tool=([A-Za-z0-9_-]+)[^\S\r\n]*\r?\n([\s\S]*?)\r?\n```tool/g;
   const actions: Action[] = [];
   let match: RegExpExecArray | null;
 
@@ -77,7 +77,7 @@ export function parseTextToolActions(content: string, formatErrorTemplate: strin
 
   if (actions.length === 0) {
     const message = content.includes("```tool=")
-      ? "Malformed tool block. Use a fenced block with a closing ``` fence."
+      ? "Malformed tool block. Use a fenced block with a closing ```tool fence."
       : "No tool blocks found in the response. Every response must include at least one tool block.";
     throw formatError(message, formatErrorTemplate);
   }

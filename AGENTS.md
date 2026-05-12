@@ -64,7 +64,7 @@ Text adapter blocks must include both the opening fence and the closing fence:
 ````text
 ```tool=shell
 pwd
-```
+```tool
 ````
 
 Do not regress this grammar to the old `mswea_bash_command` format. The `tool=<tool name>` header exists so future tools can be added without changing the text block format.

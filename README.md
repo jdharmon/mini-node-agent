@@ -223,7 +223,7 @@ When using `openai_text`, every tool call must be a fenced block with a closing 
 ````text
 ```tool=shell
 pwd
-```
+```tool
 ````
 
 The `tool=<tool name>` header is intentional so future tools can be added without changing the text grammar. The only supported tool today is `shell`.
@@ -290,7 +290,7 @@ Text tool calls must use a fenced block with the closing fence:
 ````text
 ```tool=shell
 pwd
-```
+```tool
 ````
 
 ## Shells

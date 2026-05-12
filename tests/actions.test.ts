@@ -11,12 +11,12 @@ describe("tool actions", () => {
   });
 
   it("parses text shell blocks with closing fences", () => {
-    const actions = parseTextToolActions("Thinking\n```tool=shell\npwd\n```", FORMAT);
+    const actions = parseTextToolActions("Thinking\n```tool=shell\npwd\n```tool", FORMAT);
     expect(actions).toEqual([{ tool: "shell", input: "pwd", command: "pwd" }]);
   });
 
   it("parses multiple text shell blocks", () => {
-    const actions = parseTextToolActions("```tool=shell\npwd\n```\n```tool=shell\necho hi\n```", FORMAT);
+    const actions = parseTextToolActions("```tool=shell\npwd\n```tool\n```tool=shell\necho hi\n```tool", FORMAT);
     expect(actions.map((action) => action.command)).toEqual(["pwd", "echo hi"]);
   });
 
@@ -25,7 +25,7 @@ describe("tool actions", () => {
   });
 
   it("rejects unknown text tools", () => {
-    expect(() => parseTextToolActions("```tool=edit\nx\n```", FORMAT)).toThrow("InterruptAgentFlow");
+    expect(() => parseTextToolActions("```tool=edit\nx\n```tool", FORMAT)).toThrow("InterruptAgentFlow");
   });
 
   it("parses OpenAI-style tool calls", () => {

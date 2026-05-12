@@ -31,7 +31,7 @@ If using the text model adapter, every tool use must be a fenced block with a cl
 
 \`\`\`tool=shell
 pwd
-\`\`\`
+\`\`\`tool
 
 Submit your changes and finish by issuing this command by itself:
 \`echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\``,
@@ -60,7 +60,7 @@ OpenAI tool calling: call the shell tool with {"command":"your command"}.
 Text adapter:
 \`\`\`tool=shell
 your command
-\`\`\``
+\`\`\`tool`
   },
   environment: {
     environmentClass: "local",

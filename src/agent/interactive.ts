@@ -13,7 +13,7 @@ export class InteractiveAgent extends DefaultAgent {
       const command = await input({ message: ">" });
       const message: AgentMessage = {
         role: "user",
-        content: `User command:\n\`\`\`tool=shell\n${command}\n\`\`\``,
+        content: `User command:\n\`\`\`tool=shell\n${command}\n\`\`\`tool`,
         extra: { actions: [{ tool: "shell", input: command, command }] }
       };
       this.addMessages(message);
