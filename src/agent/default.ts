@@ -4,7 +4,25 @@ import { recursiveMerge, renderTemplate, writeJson } from "../utils.js";
 
 export const DEFAULT_AGENT_CONFIG: AgentConfig = {
   systemTemplate: "You are a helpful assistant that can interact with a computer.",
-  instanceTemplate: "Please solve this issue: {{task}}",
+  instanceTemplate: `Please solve this issue: {{task}}
+
+You can execute shell commands and edit files to implement the necessary changes.
+
+You may include reasoning or prose before, between, or after tool blocks. Every response must contain at least one tool block. If you only need to communicate with the user without executing a command, you must include an end block:
+
+\`\`\`tool=end
+\`\`\`tool
+
+Every tool use is a fenced block with a closing \`\`\`tool fence. Available tools:
+
+{{tools}}
+
+File paths must be inside the current working directory. Quotes and newlines are not allowed inside the path argument.
+
+Finish with an end block:
+
+\`\`\`tool=end
+\`\`\`tool`,
   stepLimit: 0,
   costLimit: 0,
   systemPromptPlacement: "system",

@@ -57,8 +57,8 @@ program
       task = await input({ message: "What do you want to do?" });
     }
 
-    const model = getModel(modelConfig);
     const env = getEnvironment(environmentConfig);
+    const model = getModel(modelConfig, env.tools);
     const agent = new InteractiveAgent(model, env, agentConfig);
     await agent.run(task);
     if (agentConfig.outputPath) {

@@ -17,44 +17,20 @@ export const DEFAULT_CONFIG: Record<string, unknown> = {
     systemTemplate: "You are a helpful assistant that can interact with a computer.",
     instanceTemplate: `Please solve this issue: {{task}}
 
-You can use tools to read files, execute shell commands, and edit files to implement the necessary changes.
-
-Read AGENTS.md in the current working directory before performing any work.
-
-## Command Execution Rules
-
-You are operating in an environment where:
-1. You issue at least one tool block.
-2. The system executes each tool in turn and you see the result.
-3. You write your next tool block.
+You can execute shell commands and edit files to implement the necessary changes.
 
 You may include reasoning or prose before, between, or after tool blocks. Every response must contain at least one tool block. If you only need to communicate with the user without executing a command, you must include an end block:
 
 \`\`\`tool=end
 \`\`\`tool
 
-Every tool use is a fenced block with a closing \`\`\`tool fence.
+Every tool use is a fenced block with a closing \`\`\`tool fence. Available tools:
 
-Run a shell command:
-
-\`\`\`tool=shell
-pwd
-\`\`\`tool
-
-Read a file (body ignored):
-
-\`\`\`tool=read("path/to/file")
-\`\`\`tool
-
-Write a file (body becomes the file contents):
-
-\`\`\`tool=write("path/to/file")
-<file contents>
-\`\`\`tool
+{{tools}}
 
 File paths must be inside the current working directory. Quotes and newlines are not allowed inside the path argument.
 
-Submit your changes and finish with an end block:
+Finish with an end block:
 
 \`\`\`tool=end
 \`\`\`tool`,

@@ -11,24 +11,9 @@ agent:
     ```tool=end
     ```tool
 
-    Every tool use is a fenced block with a closing ```tool fence.
+    Every tool use is a fenced block with a closing ```tool fence. Available tools:
 
-    Run a shell command:
-
-    ```tool=shell
-    pwd
-    ```tool
-
-    Read a file (body ignored):
-
-    ```tool=read("path/to/file")
-    ```tool
-
-    Write a file (body becomes the file contents):
-
-    ```tool=write("path/to/file")
-    <file contents>
-    ```tool
+    {{tools}}
 
     File paths must be inside the current working directory. Quotes and newlines are not allowed inside the path argument.
 
@@ -61,3 +46,5 @@ environment:
   environmentClass: local
   timeoutMs: 30000
   shell: auto
+  # Optional. Limit the active tool set. Omit or set to an empty list to enable every built-in tool.
+  # tools: [shell, read, write]

@@ -86,4 +86,21 @@ describe("LocalEnvironment", () => {
       await rm(cwd, { recursive: true, force: true });
     }
   });
+
+  it("getTemplateVars includes a tools string with each tool's usage snippet", () => {
+    const env = new LocalEnvironment();
+    const vars = env.getTemplateVars();
+    expect(typeof vars.tools).toBe("string");
+    const toolsStr = vars.tools as string;
+    expect(toolsStr).toContain("shell");
+    expect(toolsStr).toContain("read");
+    expect(toolsStr).toContain("write");
+  });
+
+  it("respects tools allowlist: unsupported tool returns error output", async () => {
+    const env = new LocalEnvironment({ tools: ["read"] });
+    const output = await env.execute({ tool: "shell", input: "echo hi", command: "echo hi" });
+    expect(output.returncode).toBe(-1);
+    expect(output.exception_info).toMatch(/Unsupported tool: shell/);
+  });
 });

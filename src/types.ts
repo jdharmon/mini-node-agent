@@ -45,6 +45,8 @@ export interface Environment {
   serialize(): Record<string, unknown>;
 }
 
+export type { Tool, ToolContext, ToolRegistry } from "./tools/tool.js";
+
 export interface AgentConfig {
   systemTemplate: string;
   instanceTemplate: string;

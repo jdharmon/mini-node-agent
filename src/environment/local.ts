@@ -1,20 +1,21 @@
-import { spawn } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
 import type { Action, Environment, ExecutionOutput } from "../types.js";
-import { Submitted } from "../errors.js";
+import { createDefaultTools, renderToolList } from "../tools/index.js";
+import type { ToolRegistry } from "../tools/index.js";
+import type { ShellConfig } from "../tools/shell-runtime.js";
 
-export type ShellConfig = "auto" | { executable: string; args: string[] };
+export type { ShellConfig } from "../tools/shell-runtime.js";
 
 export interface LocalEnvironmentConfig {
   cwd?: string;
   env?: Record<string, string>;
   timeoutMs?: number;
   shell?: ShellConfig;
+  tools?: string[];
 }
 
 export class LocalEnvironment implements Environment {
-  private readonly config: Required<Omit<LocalEnvironmentConfig, "shell">> & { shell: ShellConfig };
+  private readonly config: Required<Omit<LocalEnvironmentConfig, "shell" | "tools">> & { shell: ShellConfig };
+  readonly tools: ToolRegistry;
 
   constructor(config: LocalEnvironmentConfig = {}) {
     this.config = {
@@ -23,57 +24,20 @@ export class LocalEnvironment implements Environment {
       timeoutMs: config.timeoutMs ?? 30_000,
       shell: config.shell ?? "auto"
     };
+    this.tools = createDefaultTools({
+      shell: this.config.shell,
+      env: this.config.env,
+      tools: config.tools
+    });
   }
 
   async execute(action: Action, options: { cwd?: string; timeoutMs?: number } = {}): Promise<ExecutionOutput> {
-    const cwd = options.cwd ?? this.config.cwd;
-    if (action.tool === "read") return this.executeRead(action.path, cwd);
-    if (action.tool === "write") return this.executeWrite(action.path, action.input, cwd);
-    if (action.tool !== "shell") {
-      return {
-        output: "",
-        returncode: -1,
-        exception_info: `Unsupported tool: ${action.tool}`
-      };
-    }
-    const shell = this.resolveShell();
-    const output = await this.runProcess(shell.executable, [...shell.args, action.command ?? action.input], {
-      cwd,
+    const tool = this.tools.get(action.tool);
+    if (!tool) return { output: "", returncode: -1, exception_info: `Unsupported tool: ${action.tool}` };
+    return tool.execute(action, {
+      cwd: options.cwd ?? this.config.cwd,
       timeoutMs: options.timeoutMs ?? this.config.timeoutMs
     });
-    this.checkFinished(output);
-    return output;
-  }
-
-  private executeRead(path: string | undefined, cwd: string): ExecutionOutput {
-    const r = this.resolveInsideCwd(path, cwd);
-    if (!r.ok) return { output: "", returncode: -1, exception_info: r.error };
-    try {
-      return { output: readFileSync(r.absolute, "utf8"), returncode: 0, exception_info: "" };
-    } catch (e) {
-      return { output: "", returncode: -1, exception_info: (e as Error).message };
-    }
-  }
-
-  private executeWrite(path: string | undefined, contents: string, cwd: string): ExecutionOutput {
-    const r = this.resolveInsideCwd(path, cwd);
-    if (!r.ok) return { output: "", returncode: -1, exception_info: r.error };
-    try {
-      writeFileSync(r.absolute, contents, "utf8");
-      return { output: "", returncode: 0, exception_info: "" };
-    } catch (e) {
-      return { output: "", returncode: -1, exception_info: (e as Error).message };
-    }
-  }
-
-  private resolveInsideCwd(path: string | undefined, cwd: string): { ok: true; absolute: string } | { ok: false; error: string } {
-    if (!path) return { ok: false, error: "Missing file path argument." };
-    const root = resolve(cwd);
-    const absolute = resolve(root, path);
-    if (absolute !== root && !absolute.startsWith(root + sep)) {
-      return { ok: false, error: `Path '${path}' is outside the working directory.` };
-    }
-    return { ok: true, absolute };
   }
 
   getTemplateVars(): Record<string, unknown> {
@@ -82,7 +46,8 @@ export class LocalEnvironment implements Environment {
       platform: process.platform,
       arch: process.arch,
       shell: this.config.shell,
-      env: process.env
+      env: process.env,
+      tools: renderToolList(this.tools)
     };
   }
 
@@ -96,92 +61,9 @@ export class LocalEnvironment implements Environment {
       }
     };
   }
-
-  private resolveShell(): { executable: string; args: string[] } {
-    if (this.config.shell !== "auto") {
-      return this.config.shell;
-    }
-    if (process.platform === "win32") {
-      return { executable: findOnPath("pwsh.exe") ?? "powershell.exe", args: ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command"] };
-    }
-    return { executable: "bash", args: ["-lc"] };
-  }
-
-  private runProcess(
-    executable: string,
-    args: string[],
-    options: { cwd: string; timeoutMs: number }
-  ): Promise<ExecutionOutput> {
-    return new Promise((resolve) => {
-      const child = spawn(executable, args, {
-        cwd: options.cwd,
-        env: { ...process.env, ...this.config.env },
-        windowsHide: true
-      });
-      let output = "";
-      let settled = false;
-      const timer = setTimeout(() => {
-        settled = true;
-        child.kill("SIGTERM");
-        resolve({
-          output,
-          returncode: -1,
-          exception_info: `Command timed out after ${options.timeoutMs}ms`,
-          extra: { exceptionType: "Timeout" }
-        });
-      }, options.timeoutMs);
-
-      child.stdout.on("data", (chunk: Buffer) => {
-        output += chunk.toString("utf8");
-      });
-      child.stderr.on("data", (chunk: Buffer) => {
-        output += chunk.toString("utf8");
-      });
-      child.on("error", (error) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve({
-          output,
-          returncode: -1,
-          exception_info: `An error occurred while executing the command: ${error.message}`,
-          extra: { exceptionType: error.name, exception: error.message }
-        });
-      });
-      child.on("close", (code) => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve({
-          output,
-          returncode: code ?? -1,
-          exception_info: ""
-        });
-      });
-    });
-  }
-
-  private checkFinished(output: ExecutionOutput): void {
-    const lines = output.output.trimStart().split(/\r?\n/);
-    if (lines[0]?.trim() === "COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT" && output.returncode === 0) {
-      const firstLineLength = output.output.indexOf(lines[0]) + lines[0].length;
-      const submission = output.output.slice(firstLineLength).replace(/^\r?\n/, "");
-      throw new Submitted({
-        role: "exit",
-        content: submission,
-        extra: { exit_status: "Submitted", submission }
-      });
-    }
-  }
 }
 
-function findOnPath(command: string): string | undefined {
-  const path = process.env.PATH ?? "";
-  const delimiter = process.platform === "win32" ? ";" : ":";
-  return path.split(delimiter).map((entry) => join(entry, command)).find((candidate) => existsSync(candidate));
-}
-
-export function getEnvironment(config: Record<string, unknown>): Environment {
+export function getEnvironment(config: Record<string, unknown>): LocalEnvironment {
   const environmentClass = String(config.environmentClass ?? "local");
   if (environmentClass !== "local") {
     throw new Error(`Unknown environment class: ${environmentClass}`);

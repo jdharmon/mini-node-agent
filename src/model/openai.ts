@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import type { AgentMessage, ExecutionOutput, Model } from "../types.js";
+import type { ToolRegistry } from "../tools/index.js";
+import { createDefaultTools } from "../tools/index.js";
 import { formatObservationMessages, parseTextToolActions } from "./actions.js";
 
 export interface OpenAIModelConfig {
@@ -10,6 +12,7 @@ export interface OpenAIModelConfig {
   formatErrorTemplate?: string;
   apiKey?: string;
   baseURL?: string;
+  tools?: ToolRegistry;
 }
 
 const DEFAULT_OBSERVATION_TEMPLATE =
@@ -28,7 +31,8 @@ export class OpenAIModel implements Model {
       observationTemplate: config.observationTemplate ?? DEFAULT_OBSERVATION_TEMPLATE,
       formatErrorTemplate: config.formatErrorTemplate ?? DEFAULT_FORMAT_ERROR_TEMPLATE,
       apiKey: config.apiKey,
-      baseURL: config.baseURL
+      baseURL: config.baseURL,
+      tools: config.tools ?? createDefaultTools({ shell: "auto", env: {} })
     };
     const connection = resolveOpenAIConnection(this.config);
     this.config.apiKey = connection.apiKey;
@@ -49,7 +53,7 @@ export class OpenAIModel implements Model {
       role: "assistant",
       content,
       extra: {
-        actions: parseTextToolActions(content, this.config.formatErrorTemplate),
+        actions: parseTextToolActions(content, this.config.formatErrorTemplate, this.config.tools),
         response,
         usage: response.usage,
         timestamp: Date.now() / 1000
@@ -103,7 +107,7 @@ export class OpenAIModel implements Model {
   }
 }
 
-export function getModel(config: Record<string, unknown>): Model {
+export function getModel(config: Record<string, unknown>, tools?: ToolRegistry): Model {
   const modelClass = String(config.modelClass ?? "openai");
   const modelName = String(config.modelName ?? process.env.MINI_NODE_AGENT_MODEL_NAME ?? process.env.OPENAI_MODEL ?? "");
   if (!modelName) {
@@ -118,7 +122,8 @@ export function getModel(config: Record<string, unknown>): Model {
     observationTemplate: String(config.observationTemplate ?? DEFAULT_OBSERVATION_TEMPLATE),
     formatErrorTemplate: String(config.formatErrorTemplate ?? DEFAULT_FORMAT_ERROR_TEMPLATE),
     apiKey: config.apiKey as string | undefined,
-    baseURL: config.baseURL as string | undefined
+    baseURL: config.baseURL as string | undefined,
+    tools
   });
 }
 
