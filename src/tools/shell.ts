@@ -2,7 +2,7 @@ import type { ExecutionOutput } from "../types.js";
 import type { Tool, ToolArgs, ToolContext, RawToolMatch } from "./tool.js";
 import { makeFormatError } from "./tool.js";
 import type { ShellConfig } from "./shell-runtime.js";
-import { resolveShell, runProcess, checkFinished } from "./shell-runtime.js";
+import { resolveShell, runProcess } from "./shell-runtime.js";
 
 export class ShellTool implements Tool {
   readonly name = "shell";
@@ -25,12 +25,10 @@ export class ShellTool implements Tool {
 
   async execute(args: ToolArgs, ctx: ToolContext): Promise<ExecutionOutput> {
     const shell = resolveShell(this.shellConfig);
-    const output = await runProcess(shell.executable, [...shell.args, args.command ?? args.input], {
+    return runProcess(shell.executable, [...shell.args, args.command ?? args.input], {
       cwd: ctx.cwd,
       timeoutMs: ctx.timeoutMs,
       env: { ...process.env, ...this.env }
     });
-    checkFinished(output);
-    return output;
   }
 }

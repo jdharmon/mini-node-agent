@@ -46,6 +46,14 @@ export class OpenAIModel implements Model {
       messages: this.prepareMessages(messages),
       ...(this.config.modelKwargs as object)
     });
+    const errorField = (response as unknown as { error?: { message?: string; code?: number | string } }).error;
+    if (errorField) {
+      const code = errorField.code != null ? ` (code ${errorField.code})` : "";
+      throw new Error(`Model '${this.config.modelName}' returned an error${code}: ${errorField.message ?? "unknown error"}`);
+    }
+    if (!Array.isArray(response.choices) || response.choices.length === 0) {
+      throw new Error(`Model '${this.config.modelName}' returned no choices. Response: ${JSON.stringify(response)}`);
+    }
     const rawMessage = response.choices[0]?.message;
     const content = rawMessage?.content ?? "";
     return {

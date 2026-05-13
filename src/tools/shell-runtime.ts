@@ -2,7 +2,6 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { ExecutionOutput } from "../types.js";
-import { Submitted } from "../errors.js";
 
 export type ShellConfig = "auto" | { executable: string; args: string[] };
 
@@ -65,19 +64,6 @@ export function runProcess(
       resolve({ output, returncode: code ?? -1, exception_info: "" });
     });
   });
-}
-
-export function checkFinished(output: ExecutionOutput): void {
-  const lines = output.output.trimStart().split(/\r?\n/);
-  if (lines[0]?.trim() === "COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT" && output.returncode === 0) {
-    const firstLineLength = output.output.indexOf(lines[0]) + lines[0].length;
-    const submission = output.output.slice(firstLineLength).replace(/^\r?\n/, "");
-    throw new Submitted({
-      role: "exit",
-      content: submission,
-      extra: { exit_status: "Submitted", submission }
-    });
-  }
 }
 
 export function findOnPath(command: string): string | undefined {

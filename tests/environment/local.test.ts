@@ -3,7 +3,6 @@ import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Submitted } from "../../src/errors.js";
 import { LocalEnvironment } from "../../src/environment/local.js";
 
 describe("LocalEnvironment", () => {
@@ -23,17 +22,6 @@ describe("LocalEnvironment", () => {
     } finally {
       await rm(cwd, { recursive: true, force: true });
     }
-  });
-
-  it("raises Submitted on the completion marker", async () => {
-    const env = new LocalEnvironment({ shell: { executable: "bash", args: ["-lc"] } });
-    await expect(
-      env.execute({
-        tool: "shell",
-        input: "printf 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\\ndone\\n'",
-        command: "printf 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT\\ndone\\n'"
-      })
-    ).rejects.toBeInstanceOf(Submitted);
   });
 
   it("reads a file inside the working directory", async () => {

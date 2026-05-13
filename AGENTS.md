@@ -101,7 +101,7 @@ environment:
     args: ["-lc"]
 ```
 
-Completion is signaled by the model emitting a `tool=end` block; `src/agent/default.ts` intercepts that action and raises `Submitted`. `src/environment/local.ts` also still recognizes a legacy `COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT` first-line marker in shell output for backward compatibility, but new prompts should use `tool=end`.
+Completion is signaled by the model emitting a `tool=end` block; `src/agent/default.ts` intercepts that action and raises `Submitted`.
 
 ## System Prompt Placement
 
