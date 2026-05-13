@@ -39,8 +39,9 @@ export class InteractiveAgent extends DefaultAgent {
           return `**TOOL:** ${header}`;
         }
       });
-      
-      console.log(String(marked(displayContent.trim())).trimEnd());
+
+      const formattedContent = String(marked(displayContent));
+      console.log(formattedContent.trimEnd());
     }
     
     return message;
