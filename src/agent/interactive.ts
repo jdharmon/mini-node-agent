@@ -40,7 +40,7 @@ export class InteractiveAgent extends DefaultAgent {
         }
       });
       
-      console.log(marked(displayContent.trim()));
+      console.log(String(marked(displayContent.trim())).trimEnd());
     }
     
     return message;
@@ -87,6 +87,7 @@ export class InteractiveAgent extends DefaultAgent {
     const answer = await input({
       message: `Execute ${commands.length} action(s)? Press Enter to confirm, or type a rejection`
     });
+    console.log();
     if (answer.trim()) {
       throw new InterruptAgentFlow([
         {
